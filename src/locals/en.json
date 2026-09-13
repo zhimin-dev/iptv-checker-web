@@ -1,6 +1,7 @@
 {
     "translation": {
       "ffmpeg慢速检查":"ffmpeg check",
+      "未检测到ffprobe，无法使用ffmpeg检查":"ffprobe not found (ffmpeg check needs it) - install full ffmpeg or use the http fast check",
       "支持开发者开发继续维护该项目":"Support developers to develop and continue to maintain the project",
       "运行时间":"Run Time Info",
       "任务信息":"Task Info",

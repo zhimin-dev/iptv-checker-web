@@ -13,6 +13,7 @@ import { downloadDir } from '@tauri-apps/api/path';
 import { type } from '@tauri-apps/plugin-os';
 import CryptoJS from 'crypto-js'
 import _package from './../../package';
+import { ApiTaskService } from '../services/apiTaskService'
 const config_url = 'https://static.zmis.me/public/iptv-checker/init.json'
 
 export const MainContextProvider = function ({ children }) {
@@ -29,6 +30,8 @@ export const MainContextProvider = function ({ children }) {
     const [checkHistory, setCheckHistory] = useState([])// 检测历史
     const [showNewVersion, setShowNewVersion] = useState(false)//是否显示新版本
     const [ffmepgCheck, setFffmepgCheck] = useState(0)// 是否可以ffmepeg检查
+    // 服务端 ffmpeg / ffprobe 状态（null 表示还没检测到，例如旧版服务端没有该接口）
+    const [ffmpegStatus, setFfmpegStatus] = useState(null)
     const [configInfo, setConfigInfo] = useState({
         "version": "",
         "sponsor": [],
@@ -157,6 +160,20 @@ export const MainContextProvider = function ({ children }) {
         })
     }
 
+    // 服务端模式：查询服务端 ffmpeg / ffprobe 是否可用。
+    // ffmpeg 慢速检查依赖 ffprobe，缺失时后端会直接中止检查，
+    // 前端提前把选项禁用并提示原因，避免用户勾了却「没有任何结果」。
+    const checkServerFFmpeg = () => {
+        new ApiTaskService().getFfmpegStatus().then((result) => {
+            setFfmpegStatus(result)
+            setFffmepgCheck(result?.ffprobe ? 1 : 0)
+            console.log("server ffmpeg status", result)
+        }).catch(e => {
+            // 旧版服务端没有该接口：保持原有行为（不限制）
+            console.log("get ffmpeg status error", e)
+        })
+    }
+
     const initControlBar = (appWindow, pageLabel) => {
         document
             .getElementById('titlebar-minimize')
@@ -240,7 +257,9 @@ export const MainContextProvider = function ({ children }) {
                 setNowPlatform(os_type)
             }
         }).catch(e => {
+            // 没有 Tauri 环境 => 服务端（Web）模式：改查服务端 ffmpeg/ffprobe 状态
             console.log("invoke---",e)
+            checkServerFFmpeg()
         })
         let setting = localStorage.getItem('settings') ?? ''
         if (setting !== '') {
@@ -257,6 +276,13 @@ export const MainContextProvider = function ({ children }) {
     const onChangeNeedFastSource = (val) => {
         setNeedFastSource(val)
     }
+
+    // ffmpeg 慢速检查是否可选：
+    // - 客户端（桌面）模式：由本地 check_ffmpeg 结果决定
+    // - 服务端模式：由 /system/ffmpeg-status 决定（接口不可用时保持可选，兼容旧服务端）
+    const ffmpegCheckEnabled = nowMod === 1
+        ? ffmepgCheck == 1
+        : (ffmpegStatus == null ? true : Boolean(ffmpegStatus.ffprobe))
 
     // 解析m3u8文件， 类似：https://xxxx.m3u8, https://xxx2.m3u8
     const getBodyTypeM3u8List = async (body) => {
@@ -1121,6 +1147,7 @@ export const MainContextProvider = function ({ children }) {
             addDetail, get_m3u_body, get_m3u8_info_by_m3u_ori_data,
             m3uObjectToM3uBody, m3uObjectToTxtBody, webSaveFile,
             detailList, detailQuery, detailMenu, ffmepgCheck,
+            ffmpegCheckEnabled, ffmpegStatus,
             detailOriginal, updateDetailMd5, delDetailData,
             detailMd5, configInfo, showNewVersion,check_version
         }}>

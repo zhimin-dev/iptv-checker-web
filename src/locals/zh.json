@@ -1,6 +1,7 @@
 {
     "translation": {
       "Welcome to React": "欢迎使用iptv-checker",
+      "未检测到ffprobe，无法使用ffmpeg检查":"未检测到 ffprobe（ffmpeg 慢速检查依赖它），请安装完整 ffmpeg 或改用 http 快速检查",
       "当前版本": "当前版本",
       "有新版本": "有新版本",
       "System Setting":"系统设置",

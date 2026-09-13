@@ -28,6 +28,12 @@ export class ApiTaskService {
         return response.data;
     }
 
+    /** 服务端 ffmpeg / ffprobe 可用性：ffmpeg 慢速检查依赖 ffprobe，缺失时前端要提前提示 */
+    async getFfmpegStatus() {
+        const response = await axios.get(`${this.baseUrl}/system/ffmpeg-status`);
+        return response.data;
+    }
+
     async updateReplaceList(replaceList) {
         const response = await axios.post(`${this.baseUrl}/system/replace`, replaceList);
         if (response.status !== 200) {

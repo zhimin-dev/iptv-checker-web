@@ -685,8 +685,16 @@ export const TaskForm = ({ onClose, formValue, open, onSave, handleSave, handleD
                                             onChange={handleChangeFfmepgCheck}
                                         >
                                             <FormControlLabel value={false} control={<Radio />} label={t('http快速检查')} />
-                                            <FormControlLabel value={true} disabled={_mainContext.ffmepgCheck == 0 && _mainContext.nowMod === 1} control={<Radio />} label={t('ffmpeg慢速检查')} />
+                                            <FormControlLabel value={true} disabled={!_mainContext.ffmpegCheckEnabled} control={<Radio />} label={t('ffmpeg慢速检查')} />
                                         </RadioGroup>
+                                        {
+                                            _mainContext.ffmpegCheckEnabled ? '' : (
+                                                <FormHelperText error sx={{ mt: 0 }}>
+                                                    {t('未检测到ffprobe，无法使用ffmpeg检查')}
+                                                    {_mainContext.ffmpegStatus?.ffprobe_error ? ` (${_mainContext.ffmpegStatus.ffprobe_error})` : ''}
+                                                </FormHelperText>
+                                            )
+                                        }
                                     </FormControl>
                                     {
                                         task.original.ffmpeg_check === false ? (
